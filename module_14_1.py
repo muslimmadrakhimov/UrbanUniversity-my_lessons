@@ -10,19 +10,19 @@ cursor = connection.cursor()
 
 # ШАГ 3: Создаем таблицу Users, если она еще не существует
 # Таблица содержит пять колонок: id, username, email, age и balance.
-cursor.execute('''
+creat_table_query = ("""
 CREATE TABLE IF NOT EXISTS Users (
-    id INTEGER PRIMARY KEY,    -- Первичный ключ, уникальный идентификатор записи
-    username TEXT NOT NULL,    -- Имя пользователя, обязательное текстовое поле
-    email TEXT NOT NULL,       -- Email, обязательное текстовое поле
-    age INTEGER,               -- Возраст пользователя, целое число
-    balance INTEGER NOT NULL   -- Баланс пользователя, обязательное целое число
-)
-''')
-print("Таблица Users успешно создана (если её не было ранее).")
+    id INTEGER PRIMARY KEY AUTOINCREMENT,    -- Первичный ключ, уникальный идентификатор записи
+    username TEXT NOT NULL,                  -- Имя пользователя, обязательное текстовое поле
+    email TEXT NOT NULL,                     -- Email, обязательное текстовое поле
+    age INTEGER,                             -- Возраст пользователя, целое число
+    balance INTEGER NOT NULL                 -- Баланс пользователя, обязательное целое число
+);
+"""
+cursor.execute(create_table_query)
 
 # ШАГ 4: Заполняем таблицу 10 пользователями
-# Если таблица уже была заполнена ранее, этот шаг можно пропустить, чтобы не дублировать данные.
+
 users = [
     ("User1", "example1@gmail.com", 10, 1000),
     ("User2", "example2@gmail.com", 20, 1000),
@@ -37,50 +37,51 @@ users = [
 ]
 
 # Вставляем данные пользователей в таблицу
-cursor.executemany('''
+insert_query = """
 INSERT INTO Users (username, email, age, balance)
-VALUES (?, ?, ?, ?)
-''', users)
-print("Таблица заполнена пользователями.")
+VALUES (?, ?, ?, ?);
+"""
+cursor.executemany(insert_query, users_data)
 
 # ШАГ 5: Обновляем баланс у каждой 2-й записи, начиная с 1-й, на 500
-# Здесь используется условие id % 2 = 1, которое выбирает записи с нечетным id.
-cursor.execute('''
+
+update_query = """
 UPDATE Users
 SET balance = 500
-WHERE id % 2 = 1
-''')
-print("Баланс обновлен у каждого 2-го пользователя (начиная с 1-го).")
+WHERE id IN (1, 3, 5, 7, 9);
+"""
+cursor.execute(update_query)
+
 
 # ШАГ 6: Удаляем каждую 3-ю запись, начиная с 1-й
-# Условие id % 3 = 0 выбирает записи, где id делится на 3 без остатка.
-cursor.execute('''
+
+delete_query = """
 DELETE FROM Users
-WHERE id % 3 = 0
-''')
-print("Каждая 3-я запись удалена из таблицы.")
+WHERE id IN (1, 4, 7, 10);
+"""
+cursor.execute(delete_query)
 
 # ШАГ 7: Выбираем записи, где возраст не равен 60
 # Используем SELECT для извлечения данных из таблицы с условием age != 60.
-cursor.execute('''
+select_query = """
 SELECT username, email, age, balance
 FROM Users
-WHERE age != 60
-''')
+WHERE age != 60;
+"""
+cursor.execute(select_query)
 
 # Сохраняем результат выборки в переменную
-result = cursor.fetchall()
+records = cursor.fetchall()
 
-# ШАГ 8: Выводим записи на экран
+# ШАГ 8:
 # В цикле проходим по каждой строке результата и красиво форматируем вывод.
-print("Результат выборки пользователей с возрастом не равным 60:")
-for row in result:
-    print(f"Имя: {row[0]} | Почта: {row[1]} | Возраст: {row[2]} | Баланс: {row[3]}")
+for record in records:
+    print(f"Имя: {record[0]} | Почта: {record[1]} | Возраст: {record[2]} | Баланс: {record[3]}")
 
 # ШАГ 9: Сохраняем изменения в базе данных
 connection.commit()
 
 # ШАГ 10: Закрываем соединение с базой данных
-# Это важно для освобождения ресурсов и предотвращения повреждения базы данных.
+
 connection.close()
-print("Соединение с базой данных закрыто.")
+
